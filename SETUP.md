@@ -238,6 +238,42 @@ docker-compose logs webhook-deployer | grep ERROR
 4. **HTTPS**: Use a reverse proxy (nginx, traefik) to add HTTPS
 5. **Monitor logs**: Regularly check logs for unauthorized access attempts
 6. **Keep updated**: Regularly update Node.js, Docker, and dependencies
+7. **Rate Limiting**: Implement rate limiting to prevent denial-of-service attacks (see below)
+
+### Implementing Rate Limiting
+
+The webhook endpoint does not include rate limiting by default. For production use, add rate limiting through:
+
+**Option 1: Reverse Proxy (Recommended)**
+Configure rate limiting in nginx:
+
+```nginx
+limit_req_zone $binary_remote_addr zone=webhook:10m rate=10r/m;
+
+server {
+    location /digletbot {
+        limit_req zone=webhook burst=5;
+        proxy_pass http://localhost:3000;
+    }
+}
+```
+
+**Option 2: Application-Level**
+Add the Fastify rate limit plugin:
+
+```bash
+npm install @fastify/rate-limit
+```
+
+Then update `src/index.ts`:
+```typescript
+import rateLimit from '@fastify/rate-limit'
+
+await fastify.register(rateLimit, {
+  max: 100,
+  timeWindow: '15 minutes'
+})
+```
 
 ## Production Deployment
 

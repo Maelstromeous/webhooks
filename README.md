@@ -174,6 +174,29 @@ To use it on the remote host:
 - **Non-Root User**: Docker container runs as non-root user
 - **Environment Variables**: Sensitive data should be passed via environment variables, not hardcoded
 
+### Production Security Recommendations
+
+For production deployments, consider implementing:
+
+1. **Rate Limiting**: Add rate limiting to the webhook endpoint to prevent denial-of-service attacks. This can be implemented using:
+   - A reverse proxy (nginx, Traefik) with rate limiting
+   - Fastify rate limit plugin: [@fastify/rate-limit](https://github.com/fastify/fastify-rate-limit)
+   
+   Example with Fastify rate limit:
+   ```typescript
+   import rateLimit from '@fastify/rate-limit'
+   
+   await fastify.register(rateLimit, {
+     max: 100,
+     timeWindow: '15 minutes'
+   })
+   ```
+
+2. **IP Whitelisting**: Restrict webhook access to known IP addresses
+3. **HTTPS**: Always use HTTPS in production with valid SSL certificates
+4. **Monitoring**: Set up monitoring and alerting for failed authentication attempts
+5. **Secret Rotation**: Regularly rotate webhook secrets and SSH keys
+
 ## Development
 
 ### Linting
