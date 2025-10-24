@@ -8,10 +8,10 @@
         {
           "match": {
             "type": "payload-hmac-sha256",
-            "secret": "mysecret",
+            "secret": "foosecret",
             "parameter": {
               "source": "header",
-              "name": "X-Signature"
+              "name": "X-Hub-Signature"
             }
           }
         }

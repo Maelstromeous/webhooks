@@ -1,2 +1,3 @@
 #!/bin/sh
-echo "It worked!" >> /config/output.txt
+# Add timestamp
+echo "$(date '+%Y-%m-%d %H:%M:%S') It worked!" >> /config/log.txt
