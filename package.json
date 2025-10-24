@@ -1,0 +1,31 @@
+{
+  "name": "webhook-deployer",
+  "version": "1.0.0",
+  "description": "Webhook deployer for digletbot docker compose deployments",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": ["webhook", "fastify", "docker", "deployment"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2",
+    "ssh2": "^1.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "@types/ssh2": "^1.15.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "eslint": "^8.57.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
