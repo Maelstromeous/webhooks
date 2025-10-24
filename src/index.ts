@@ -1,7 +1,8 @@
 import Fastify from 'fastify';
-import { createHmac, timingSafeEqual } from 'crypto';
-import { Client } from 'ssh2';
 import { IncomingMessage, Server, ServerResponse } from 'http';
+import { verifySignature } from './auth';
+import { executeRemoteCommand } from './ssh';
+import { rateLimitMiddleware } from './rateLimit';
 
 // Environment variables
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
@@ -37,96 +38,22 @@ const fastify = Fastify<Server, IncomingMessage, ServerResponse>({
   }
 });
 
-/**
- * Verify HMAC SHA256 signature
- */
-function verifySignature(payload: string, signature: string | undefined): boolean {
-  if (!signature) {
-    return false;
-  }
-
-  // Compute HMAC
-  const hmac = createHmac('sha256', WEBHOOK_SECRET);
-  hmac.update(payload);
-  const digest = 'sha256=' + hmac.digest('hex');
-
-  // Timing-safe comparison
-  try {
-    return timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
-  } catch {
-    // If lengths don't match, timingSafeEqual throws
-    return false;
-  }
-}
-
-/**
- * Execute command on remote host via SSH
- */
-async function executeRemoteCommand(command: string): Promise<{ stdout: string; stderr: string }> {
-  return new Promise((resolve, reject) => {
-    const conn = new Client();
-    let stdout = '';
-    let stderr = '';
-
-    conn.on('ready', () => {
-      fastify.log.info('SSH connection established');
-      
-      conn.exec(command, (err, stream) => {
-        if (err) {
-          conn.end();
-          return reject(err);
-        }
-
-        stream.on('close', (code: number) => {
-          fastify.log.info({ code }, 'Command completed');
-          conn.end();
-          
-          if (code === 0) {
-            resolve({ stdout, stderr });
-          } else {
-            reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
-          }
-        });
-
-        stream.on('data', (data: Buffer) => {
-          stdout += data.toString();
-        });
-
-        stream.stderr.on('data', (data: Buffer) => {
-          stderr += data.toString();
-        });
-      });
-    });
-
-    conn.on('error', (err) => {
-      fastify.log.error({ err }, 'SSH connection error');
-      reject(err);
-    });
-
-    // Connect to SSH
-    conn.connect({
-      host: SSH_HOST,
-      port: SSH_PORT,
-      username: SSH_USER,
-      privateKey: SSH_PRIVATE_KEY
-    });
-  });
-}
-
 // Health check endpoint
 fastify.get('/healthz', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
-// Webhook endpoint
-fastify.post('/digletbot', async (request, reply) => {
+// Webhook endpoint with rate limiting
+fastify.post('/digletbot', {
+  preHandler: rateLimitMiddleware
+}, async (request, reply) => {
   const signature = request.headers['x-hub-signature-256'] as string | undefined;
   const rawBody = JSON.stringify(request.body);
 
   fastify.log.info('Received webhook request');
 
   // Verify signature
-  if (!verifySignature(rawBody, signature)) {
+  if (!verifySignature(rawBody, signature, WEBHOOK_SECRET)) {
     fastify.log.warn('Invalid signature');
     return reply.code(401).send({ error: 'Invalid signature' });
   }
@@ -134,7 +61,16 @@ fastify.post('/digletbot', async (request, reply) => {
   fastify.log.info('Signature verified, executing deployment');
 
   try {
-    const result = await executeRemoteCommand(SSH_COMMAND);
+    const result = await executeRemoteCommand(
+      SSH_COMMAND,
+      {
+        host: SSH_HOST,
+        port: SSH_PORT,
+        username: SSH_USER,
+        privateKey: SSH_PRIVATE_KEY
+      },
+      fastify.log
+    );
     fastify.log.info({ stdout: result.stdout, stderr: result.stderr }, 'Deployment completed');
     
     return reply.code(200).send({
