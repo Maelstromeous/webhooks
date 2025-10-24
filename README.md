@@ -2,6 +2,8 @@
 
 A Fastify TypeScript application that listens for webhooks and triggers Docker Compose deployments on remote hosts via SSH.
 
+**📖 [Detailed Setup Guide](SETUP.md)** - Step-by-step instructions for deployment
+
 ## Features
 
 - **POST /digletbot** - Webhook endpoint with HMAC SHA256 signature verification
@@ -86,20 +88,27 @@ docker run -d \
   webhook-deployer
 ```
 
-Or using docker-compose:
-```yaml
-version: '3.8'
-services:
-  webhook-deployer:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
-      - SSH_HOST=${SSH_HOST}
-      - SSH_USER=${SSH_USER}
-      - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
-      - LOG_LEVEL=info
+Or using docker-compose (recommended):
+
+1. Create a `.env` file (see `.env.example`):
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+2. Start the service:
+```bash
+docker-compose up -d
+```
+
+3. View logs:
+```bash
+docker-compose logs -f webhook-deployer
+```
+
+4. Stop the service:
+```bash
+docker-compose down
 ```
 
 ## Usage
