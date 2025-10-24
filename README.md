@@ -8,6 +8,8 @@ A Fastify TypeScript application that listens for webhooks and triggers Docker C
 
 **⚙️ [Service Configuration Guide](CONFIG_EXAMPLE.md)** - Multi-service configuration and setup
 
+**🏗️ [Architecture Overview](ARCHITECTURE.md)** - System architecture and request flow
+
 ## Features
 
 - **POST /digletbot** - Webhook endpoint with HMAC SHA256 signature verification
