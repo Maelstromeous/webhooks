@@ -6,6 +6,8 @@ A Fastify TypeScript application that listens for webhooks and triggers Docker C
 
 **🔗 [GitHub Webhook Examples](GITHUB_WEBHOOK_EXAMPLE.md)** - GitHub webhook payload examples and integration guide
 
+**⚙️ [Service Configuration Guide](CONFIG_EXAMPLE.md)** - Multi-service configuration and setup
+
 ## Features
 
 - **POST /digletbot** - Webhook endpoint with HMAC SHA256 signature verification
@@ -15,6 +17,7 @@ A Fastify TypeScript application that listens for webhooks and triggers Docker C
 - **Docker Support** - Containerized deployment with health checks
 - **Rate Limiting** - Built-in rate limiting (10 requests per minute per IP)
 - **Modular Architecture** - Clean separation of concerns with dedicated modules for authentication, SSH, and rate limiting
+- **Multi-Service Support** - Configure and deploy multiple services with different SSH hosts using the same webhook server
 
 ## Prerequisites
 
@@ -29,15 +32,17 @@ The following environment variables are required:
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `WEBHOOK_SECRET` | Secret key for HMAC signature verification | Yes | - |
-| `SSH_HOST` | Remote host address for SSH connection | Yes | - |
-| `SSH_USER` | SSH username | Yes | - |
-| `SSH_PRIVATE_KEY` | SSH private key (PEM format) | Yes | - |
-| `SSH_PORT` | SSH port | No | 22 |
-| `SSH_COMMAND` | Command to execute on remote host | No | `docker compose pull && docker compose up -d digletbot` |
+| `SSH_USER` | SSH username (shared across all services) | Yes | - |
+| `SSH_PRIVATE_KEY` | SSH private key in PEM format (shared) | Yes | - |
+| `DIGLETBOT_SSH_HOST` | SSH host for digletbot service | Yes | - |
+| `DIGLETBOT_SSH_PORT` | SSH port for digletbot service | No | 22 |
+| `DIGLETBOT_SSH_COMMAND` | Command to execute on digletbot host | No | `docker compose pull && docker compose up -d digletbot` |
 | `PORT` | Port for the webhook server | No | 3000 |
 | `HOST` | Host address to bind to | No | 0.0.0.0 |
 | `LOG_LEVEL` | Logging level (trace, debug, info, warn, error, fatal) | No | info |
 | `NODE_ENV` | Environment (production, development) | No | - |
+
+**Note**: For multiple services, add similar environment variables with the service name prefix (e.g., `SERVICEB_SSH_HOST`, `SERVICEC_SSH_HOST`). See [CONFIG_EXAMPLE.md](CONFIG_EXAMPLE.md) for details.
 
 ## Installation
 
@@ -51,7 +56,7 @@ npm install
 2. Create a `.env` file with your configuration:
 ```bash
 WEBHOOK_SECRET=your-secret-key
-SSH_HOST=example.com
+DIGLETBOT_SSH_HOST=example.com
 SSH_USER=deploy
 SSH_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
 ...
@@ -85,7 +90,7 @@ docker build -t webhook-deployer .
 docker run -d \
   -p 3000:3000 \
   -e WEBHOOK_SECRET=your-secret-key \
-  -e SSH_HOST=example.com \
+  -e DIGLETBOT_SSH_HOST=example.com \
   -e SSH_USER=deploy \
   -e SSH_PRIVATE_KEY="$(cat ~/.ssh/id_rsa)" \
   --name webhook-deployer \
@@ -217,8 +222,17 @@ src/
 ├── index.ts      # Main application and route handlers
 ├── auth.ts       # HMAC signature verification
 ├── ssh.ts        # SSH remote command execution
-└── rateLimit.ts  # Rate limiting middleware (10 req/min per IP)
+├── rateLimit.ts  # Rate limiting middleware (10 req/min per IP)
+├── handler.ts    # Generic webhook handler and error handling
+└── config.ts     # Service configuration and management
 ```
+
+The architecture supports:
+- **Generic authentication**: All endpoints use the same authentication hook
+- **Centralized error handling**: SSH failures handled consistently
+- **Multi-service deployments**: Easy to add new services with different hosts
+- **Shared SSH credentials**: One SSH key for all services
+- **Per-service configuration**: Each service has its own host and command
 
 ## Development
 

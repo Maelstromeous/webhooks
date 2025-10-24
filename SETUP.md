@@ -34,17 +34,12 @@ Edit `.env` and configure the following required variables:
    openssl rand -hex 32
    ```
 
-2. **SSH_HOST**: The hostname or IP address of your remote server
-   ```
-   SSH_HOST=example.com
-   ```
-
-3. **SSH_USER**: The SSH username
+2. **SSH_USER**: The SSH username (shared across all services)
    ```
    SSH_USER=deploy
    ```
 
-4. **SSH_PRIVATE_KEY**: Your SSH private key in PEM format
+3. **SSH_PRIVATE_KEY**: Your SSH private key in PEM format (shared across all services)
    
    **Note**: For best security, use Ed25519 keys instead of RSA:
    ```bash
@@ -68,12 +63,40 @@ Edit `.env` and configure the following required variables:
    -----END PRIVATE KEY-----"
    ```
 
+4. **DIGLETBOT_SSH_HOST**: The hostname or IP address of the digletbot server
+   ```
+   DIGLETBOT_SSH_HOST=example.com
+   ```
+
 ### Optional Variables
 
-- **SSH_PORT**: SSH port (default: 22)
-- **SSH_COMMAND**: Custom command to execute (default: `docker compose pull && docker compose up -d digletbot`)
+- **DIGLETBOT_SSH_PORT**: SSH port for digletbot (default: 22)
+- **DIGLETBOT_SSH_COMMAND**: Custom command to execute (default: `docker compose pull && docker compose up -d digletbot`)
 - **PORT**: Webhook server port (default: 3000)
 - **LOG_LEVEL**: Logging level (default: info)
+
+### Multi-Service Configuration
+
+To add more services, configure additional environment variables with the service name prefix:
+
+```bash
+# Service B
+SERVICEB_SSH_HOST=serviceb.example.com
+SERVICEB_SSH_PORT=22
+SERVICEB_SSH_COMMAND="/opt/scripts/update-serviceb.sh"
+
+# Service C
+SERVICEC_SSH_HOST=servicec.example.com
+SERVICEC_SSH_COMMAND="cd /app && ./deploy.sh"
+```
+
+Then add the endpoint in `src/index.ts`:
+```typescript
+fastify.post('/serviceB', createWebhookEndpoint('serviceB'));
+fastify.post('/serviceC', createWebhookEndpoint('serviceC'));
+```
+
+See [CONFIG_EXAMPLE.md](CONFIG_EXAMPLE.md) for detailed multi-service configuration.
 
 ## Step 3: Prepare the Remote Server
 

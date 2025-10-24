@@ -1,26 +1,31 @@
-import Fastify from 'fastify';
+import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import { IncomingMessage, Server, ServerResponse } from 'http';
-import { verifySignature } from './auth';
-import { executeRemoteCommand } from './ssh';
 import { rateLimitMiddleware } from './rateLimit';
+import { authenticateWebhook, handleWebhookDeployment, WebhookHandlerOptions } from './handler';
+import { validateServiceConfig } from './config';
 
 // Environment variables
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
-const SSH_HOST = process.env.SSH_HOST || '';
-const SSH_PORT = process.env.SSH_PORT ? parseInt(process.env.SSH_PORT) : 22;
 const SSH_USER = process.env.SSH_USER || '';
 const SSH_PRIVATE_KEY = process.env.SSH_PRIVATE_KEY || '';
-const SSH_COMMAND = process.env.SSH_COMMAND || 'docker compose pull && docker compose up -d digletbot';
 
 // Validate required environment variables
 if (!WEBHOOK_SECRET) {
   throw new Error('WEBHOOK_SECRET environment variable is required');
 }
 
-if (!SSH_HOST || !SSH_USER || !SSH_PRIVATE_KEY) {
-  throw new Error('SSH_HOST, SSH_USER, and SSH_PRIVATE_KEY environment variables are required');
+if (!SSH_USER || !SSH_PRIVATE_KEY) {
+  throw new Error('SSH_USER and SSH_PRIVATE_KEY environment variables are required');
+}
+
+// Validate service configurations at startup
+try {
+  validateServiceConfig('digletbot');
+} catch (error) {
+  console.error('Configuration validation failed:', error);
+  throw error;
 }
 
 // Create Fastify instance with pino logger
@@ -38,55 +43,41 @@ const fastify = Fastify<Server, IncomingMessage, ServerResponse>({
   }
 });
 
+// Handler options shared across all webhook endpoints
+const handlerOptions: WebhookHandlerOptions = {
+  webhookSecret: WEBHOOK_SECRET,
+  sshUser: SSH_USER,
+  sshPrivateKey: SSH_PRIVATE_KEY,
+  logger: fastify.log
+};
+
 // Health check endpoint
 fastify.get('/healthz', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
-// Webhook endpoint with rate limiting
-fastify.post('/digletbot', {
-  preHandler: rateLimitMiddleware
-}, async (request, reply) => {
-  const signature = request.headers['x-hub-signature-256'] as string | undefined;
-  const rawBody = JSON.stringify(request.body);
+// Generic webhook endpoint factory
+// This creates consistent endpoints for all services
+function createWebhookEndpoint(serviceName: string) {
+  return {
+    preHandler: [
+      rateLimitMiddleware,
+      async (request: FastifyRequest, reply: FastifyReply) => {
+        await authenticateWebhook(request, reply, handlerOptions);
+      }
+    ],
+    handler: async (request: FastifyRequest, reply: FastifyReply) => {
+      await handleWebhookDeployment(serviceName, request, reply, handlerOptions);
+    }
+  };
+}
 
-  fastify.log.info('Received webhook request');
+// Webhook endpoint for digletbot service
+fastify.post('/digletbot', createWebhookEndpoint('digletbot'));
 
-  // Verify signature
-  if (!verifySignature(rawBody, signature, WEBHOOK_SECRET)) {
-    fastify.log.warn('Invalid signature');
-    return reply.code(401).send({ error: 'Invalid signature' });
-  }
-
-  fastify.log.info('Signature verified, executing deployment');
-
-  try {
-    const result = await executeRemoteCommand(
-      SSH_COMMAND,
-      {
-        host: SSH_HOST,
-        port: SSH_PORT,
-        username: SSH_USER,
-        privateKey: SSH_PRIVATE_KEY
-      },
-      fastify.log
-    );
-    fastify.log.info({ stdout: result.stdout, stderr: result.stderr }, 'Deployment completed');
-    
-    return reply.code(200).send({
-      success: true,
-      message: 'Deployment triggered successfully',
-      output: result.stdout
-    });
-  } catch (error) {
-    fastify.log.error({ error }, 'Deployment failed');
-    
-    return reply.code(500).send({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+// Add more service endpoints as needed:
+// fastify.post('/serviceB', createWebhookEndpoint('serviceB'));
+// fastify.post('/serviceC', createWebhookEndpoint('serviceC'));
 
 // Start server
 const start = async () => {
