@@ -4,6 +4,8 @@ A Fastify TypeScript application that listens for webhooks and triggers Docker C
 
 **📖 [Detailed Setup Guide](SETUP.md)** - Step-by-step instructions for deployment
 
+**🔗 [GitHub Webhook Examples](GITHUB_WEBHOOK_EXAMPLE.md)** - GitHub webhook payload examples and integration guide
+
 ## Features
 
 - **POST /digletbot** - Webhook endpoint with HMAC SHA256 signature verification
@@ -11,6 +13,8 @@ A Fastify TypeScript application that listens for webhooks and triggers Docker C
 - **SSH Remote Execution** - Securely execute Docker Compose commands on remote hosts
 - **Pino Logging** - Structured logging with pino
 - **Docker Support** - Containerized deployment with health checks
+- **Rate Limiting** - Built-in rate limiting (10 requests per minute per IP)
+- **Modular Architecture** - Clean separation of concerns with dedicated modules for authentication, SSH, and rate limiting
 
 ## Prerequisites
 
@@ -173,12 +177,13 @@ To use it on the remote host:
 - **SSH Key Authentication**: Uses private key authentication instead of passwords
 - **Non-Root User**: Docker container runs as non-root user
 - **Environment Variables**: Sensitive data should be passed via environment variables, not hardcoded
+- **Rate Limiting**: Built-in rate limiting (10 requests per minute per IP) to prevent abuse
 
 ### Production Security Recommendations
 
 For production deployments, consider implementing:
 
-1. **Rate Limiting**: Add rate limiting to the webhook endpoint to prevent denial-of-service attacks. This can be implemented using:
+1. **Additional Rate Limiting**: The built-in rate limiting (10/min) can be supplemented with reverse proxy rate limiting for more granular control:
    - A reverse proxy (nginx, Traefik) with rate limiting
    - Fastify rate limit plugin: [@fastify/rate-limit](https://github.com/fastify/fastify-rate-limit)
    
@@ -196,6 +201,24 @@ For production deployments, consider implementing:
 3. **HTTPS**: Always use HTTPS in production with valid SSL certificates
 4. **Monitoring**: Set up monitoring and alerting for failed authentication attempts
 5. **Secret Rotation**: Regularly rotate webhook secrets and SSH keys
+
+## Implementation Details
+
+The application uses:
+- **Fastify 4.28.1** for high-performance HTTP handling
+- **ssh2** library for secure SSH connections
+- **crypto** (built-in) for HMAC signature verification
+- **pino** for structured logging
+
+### Code Structure
+
+```
+src/
+├── index.ts      # Main application and route handlers
+├── auth.ts       # HMAC signature verification
+├── ssh.ts        # SSH remote command execution
+└── rateLimit.ts  # Rate limiting middleware (10 req/min per IP)
+```
 
 ## Development
 

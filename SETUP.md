@@ -238,11 +238,31 @@ docker-compose logs webhook-deployer | grep ERROR
 4. **HTTPS**: Use a reverse proxy (nginx, traefik) to add HTTPS
 5. **Monitor logs**: Regularly check logs for unauthorized access attempts
 6. **Keep updated**: Regularly update Node.js, Docker, and dependencies
-7. **Rate Limiting**: Implement rate limiting to prevent denial-of-service attacks (see below)
+7. **Built-in Rate Limiting**: The service includes rate limiting (10 requests/min per IP) by default
 
-### Implementing Rate Limiting
+### Rate Limiting
 
-The webhook endpoint does not include rate limiting by default. For production use, add rate limiting through:
+The webhook service includes built-in rate limiting that restricts requests to **10 per minute per IP address**. When the limit is exceeded, the service returns:
+
+- HTTP 429 (Too Many Requests)
+- `Retry-After` header indicating when to retry
+- JSON error response with retry information
+
+Example rate limit response:
+
+```json
+{
+  "error": "Too many requests",
+  "message": "Rate limit exceeded. Try again in 45 seconds.",
+  "retryAfter": 45
+}
+```
+
+### Implementing Additional Rate Limiting
+
+### Implementing Additional Rate Limiting
+
+While the service includes built-in rate limiting (10 req/min per IP), you may want additional layers for production use, add rate limiting through:
 
 **Option 1: Reverse Proxy (Recommended)**
 Configure rate limiting in nginx:
