@@ -115,7 +115,19 @@ docker-compose down
 
 ### Webhook Request
 
-Send a POST request to `/digletbot` with an HMAC SHA256 signature in the `X-Hub-Signature-256` header:
+Send a POST request to `/digletbot` with an HMAC SHA256 signature in the `X-Hub-Signature-256` header.
+
+For testing, use the included test script:
+
+```bash
+# Test with default payload
+./test-webhook.sh
+
+# Test with custom payload
+./test-webhook.sh '{"event":"deployment","repo":"myapp"}'
+```
+
+Or manually calculate and send:
 
 ```bash
 # Calculate signature

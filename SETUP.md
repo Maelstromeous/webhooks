@@ -45,8 +45,18 @@ Edit `.env` and configure the following required variables:
    ```
 
 4. **SSH_PRIVATE_KEY**: Your SSH private key in PEM format
+   
+   **Note**: For best security, use Ed25519 keys instead of RSA:
    ```bash
+   # Generate an Ed25519 key (recommended)
+   ssh-keygen -t ed25519 -C "webhook-deployer"
+   
+   # Or if Ed25519 is not supported, use RSA
+   ssh-keygen -t rsa -b 4096 -C "webhook-deployer"
+   
    # Get your private key content
+   cat ~/.ssh/id_ed25519
+   # or
    cat ~/.ssh/id_rsa
    ```
    
@@ -144,6 +154,21 @@ Expected response:
 ```
 
 ### Test Webhook Endpoint
+
+Using the provided test script (easiest method):
+
+```bash
+# Use default test payload
+./test-webhook.sh
+
+# Or provide a custom payload
+./test-webhook.sh '{"event":"custom","data":"test"}'
+
+# Test against a different URL
+WEBHOOK_URL=http://your-server:3000/digletbot ./test-webhook.sh
+```
+
+Or manually with curl:
 
 ```bash
 # Set your secret
