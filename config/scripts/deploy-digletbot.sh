@@ -9,7 +9,7 @@ REMOTE_USER="root"
 REMOTE_HOST="10.0.5.4"
 REMOTE_SCRIPT="/root/update.sh"    # Script already on remote machine
 
-log_message("Starting digletbot deployment...")
+log_message 'Starting digletbot deployment...'
 
 # Ensure SSH client is available (works on Alpine, etc.)
 sh "$SCRIPT_DIR/install_ssh_client.sh"
