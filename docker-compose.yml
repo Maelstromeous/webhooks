@@ -9,6 +9,7 @@ services:
       - EXTRA_PARAM=-hotreload #optional
     volumes:
       - ./config:/config
+      - /root/.ssh/id_rsa:/keys/deploy_key:ro
     ports:
       - "9000:9000"
     restart: unless-stopped

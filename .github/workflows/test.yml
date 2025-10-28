@@ -1,0 +1,20 @@
+name: Test webhook
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    # https://github.com/marketplace/actions/secure-github-webhook
+    - name: Trigger webhook
+      uses: ramzzisudip/secure-github-webhook@0.3.0
+      with:
+        url: https://hooks.mattcavanagh.co.uk/hooks/test
+        data: '{ "example": "data" }'
+        timeout: 2000
+        hmacSecret: "${{ secrets.HMAC_SECRET }}"
