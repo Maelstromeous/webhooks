@@ -45,4 +45,10 @@ need ssh || install_ssh_client
 
 # Key perms (ssh will complain if too open)
 [ -f "$SSH_KEY" ] || { log_message install_ssh "Key not found at $SSH_KEY" >&2; exit 1; }
-chmod 600 "$SSH_KEY" || true
+
+# Ensure SSH key is 600, it should be mounted read only by docker so we can't change it
+KEY_PERMS=$(stat -c "%a" "$SSH_KEY")
+if [ "$KEY_PERMS" != "600" ]; then
+	log_message install_ssh "Incorrect key permissions: $KEY_PERMS, expected 600 - please set the correct permissions on the host system" >&2
+	exit 1
+fi
