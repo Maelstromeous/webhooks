@@ -20,7 +20,7 @@
   },
   {
     "id": "test",
-    "execute-command": "echo 'Hello world'",
+    "execute-command": "/config/scripts/hello.sh",
     "command-working-directory": "/config",
     "include-command-output-in-response": true,
     "include-command-output-in-response-on-error": true
