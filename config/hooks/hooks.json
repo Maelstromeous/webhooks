@@ -1,5 +1,24 @@
 [
   {
+    "id": "digletbot",
+    "execute-command": "/config/scripts/deploy-digletbot.sh",
+    "command-working-directory": "/config",
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "payload-hmac-sha256",
+            "secret": "foosecret",
+            "parameter": {
+              "source": "header",
+              "name": "X-Hub-Signature"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
     "id": "test",
     "execute-command": "/config/scripts/hello.sh",
     "command-working-directory": "/config",
