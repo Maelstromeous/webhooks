@@ -10,7 +10,8 @@ services:
     env_file:
       - ./webhook.env
     volumes:
-      - ./config:/config
+      - ./app:/app
+      - ./app/config:/config
       - /root/.ssh/id_rsa:/keys/deploy_key:ro
     ports:
       - "9000:9000"
