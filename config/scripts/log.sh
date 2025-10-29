@@ -20,6 +20,6 @@ fi
 
 # Function to log messages with timestamp
 function log_message() {
-		local MESSAGE="$1"
+		local MESSAGE="$2"
 		echo "$(date '+%Y-%m-%d %H:%M:%S') [$SOURCE] $MESSAGE" >> "$LOG_FILE"
 }
