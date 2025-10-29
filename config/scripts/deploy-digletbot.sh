@@ -4,7 +4,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/log.sh"
 
-SSH_KEY="/keys/deploy_key"        # Path to SSH private key inside container
 REMOTE_USER="root"
 REMOTE_HOST="10.0.5.4"
 REMOTE_SCRIPT="/root/update.sh"    # Script already on remote machine

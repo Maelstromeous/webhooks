@@ -1,7 +1,7 @@
 services:
   webhook:
     image: ghcr.io/linuxserver-labs/webhook:latest
-    container_name: webhook
+    container_name: webhooks
     environment:
       - PUID=1000
       - PGID=1000
