@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SSH_KEY="/keys/deploy_key"        # Path to SSH private key inside container
+source "$(dirname "${BASH_SOURCE[0]}")/constants.sh"
+source "$SCRIPT_DIR/log.sh"
 
 need() { command -v "$1" >/dev/null 2>&1; }
 
@@ -32,7 +33,7 @@ install_ssh_client() {
       elif need dnf; then dnf install -y openssh-clients >/dev/null
       elif need yum; then yum install -y openssh-clients >/dev/null
       else
-        echo "Cannot install ssh client: unknown package manager" >&2
+        log_message "Cannot install ssh client: unknown package manager" >&2
         exit 1
       fi
       ;;
@@ -43,7 +44,5 @@ install_ssh_client() {
 need ssh || install_ssh_client
 
 # Key perms (ssh will complain if too open)
-[ -f "$SSH_KEY" ] || { echo "Key not found at $SSH_KEY" >&2; exit 1; }
+[ -f "$SSH_KEY" ] || { log_message "Key not found at $SSH_KEY" >&2; exit 1; }
 chmod 600 "$SSH_KEY" || true
-
-echo "SSH client is installed and key is ready."
