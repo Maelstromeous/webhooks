@@ -8,7 +8,7 @@
         {
           "match": {
             "type": "payload-hmac-sha256",
-            "secret": "this is a test",
+            "secret": "REPLACE_ME",
             "parameter": {
               "source": "header",
               "name": "X-Hub-Signature"
@@ -27,7 +27,7 @@
         {
           "match": {
             "type": "payload-hmac-sha256",
-            "secret": "this is a test",
+            "secret": "REPLACE_ME",
             "parameter": {
               "source": "header",
               "name": "X-Hub-Signature"
