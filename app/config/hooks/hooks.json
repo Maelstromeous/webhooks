@@ -21,6 +21,8 @@
   {
     "id": "test",
     "execute-command": "echo 'Hello world'",
-    "command-working-directory": "/config"
+    "command-working-directory": "/config",
+    "include-command-output-in-response": true,
+    "include-command-output-in-response-on-error": true
   }
 ]
