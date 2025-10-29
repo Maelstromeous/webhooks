@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/constants.sh"
+source "$(dirname "$0")/constants.sh"
 
 LOG_FILE="$APP_PATH/logs/webhooks.log"
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/constants.sh"
+source "$(dirname "$0")/constants.sh"
 source "$SCRIPT_DIR/log.sh"
 
 REMOTE_USER="root"

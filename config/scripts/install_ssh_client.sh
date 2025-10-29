@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/constants.sh"
+source "$(dirname "$0")/constants.sh"
 source "$SCRIPT_DIR/log.sh"
 
 need() { command -v "$1" >/dev/null 2>&1; }
