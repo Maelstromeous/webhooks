@@ -1,18 +1,16 @@
 services:
   webhook:
-    image: ghcr.io/linuxserver-labs/webhook:latest
+    image: thecatlady/webhook
     container_name: webhooks
+    entrypoint: /app/entrypoint.sh
     environment:
-      - PUID=1000
-      - PGID=1000
       - TZ=Europe/London
-      - EXTRA_PARAM=-hotreload #optional
     env_file:
       - ./webhook.env
     volumes:
       - ./app:/app
       - ./app/config:/config
-      - /root/.ssh/id_rsa:/keys/deploy_key:ro
+      # - /root/.ssh/id_rsa:/keys/deploy_key:ro
     ports:
       - "9000:9000"
     restart: unless-stopped
