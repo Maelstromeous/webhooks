@@ -7,6 +7,7 @@ services:
       - PGID=1000
       - TZ=Europe/London
       - EXTRA_PARAM=-hotreload #optional
+      - WEBHOOK_SECRET=secret # obviously not this on the server
     volumes:
       - ./config:/config
       - /root/.ssh/id_rsa:/keys/deploy_key:ro
