@@ -33,7 +33,7 @@ install_ssh_client() {
       elif need dnf; then dnf install -y openssh-clients >/dev/null
       elif need yum; then yum install -y openssh-clients >/dev/null
       else
-        log_message "Cannot install ssh client: unknown package manager" >&2
+        log_message install_ssh "Cannot install ssh client: unknown package manager" >&2
         exit 1
       fi
       ;;
@@ -44,5 +44,5 @@ install_ssh_client() {
 need ssh || install_ssh_client
 
 # Key perms (ssh will complain if too open)
-[ -f "$SSH_KEY" ] || { log_message "Key not found at $SSH_KEY" >&2; exit 1; }
+[ -f "$SSH_KEY" ] || { log_message install_ssh "Key not found at $SSH_KEY" >&2; exit 1; }
 chmod 600 "$SSH_KEY" || true
