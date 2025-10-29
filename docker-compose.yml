@@ -6,7 +6,7 @@ services:
     environment:
       - TZ=Europe/London
     env_file:
-      - ./webhook.env
+      - webhook.env.example
     volumes:
       - ./app:/app
       - ./app/config:/config
