@@ -2,6 +2,9 @@
 set -euo pipefail
 
 echo "Starting application setup..."
+
+echo "Installing jq..."
+apk add --no-cache jq
 echo "Replacing secret..."
 /app/replace-secret.sh
 
