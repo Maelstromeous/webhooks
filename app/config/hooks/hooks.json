@@ -20,21 +20,7 @@
   },
   {
     "id": "test",
-    "execute-command": "/config/scripts/hello.sh",
-    "command-working-directory": "/config",
-    "trigger-rule": {
-      "and": [
-        {
-          "match": {
-            "type": "payload-hmac-sha256",
-            "secret": "REPLACE_ME",
-            "parameter": {
-              "source": "header",
-              "name": "X-Hub-Signature"
-            }
-          }
-        }
-      ]
-    }
+    "execute-command": "echo 'Hello world'",
+    "command-working-directory": "/config"
   }
 ]
