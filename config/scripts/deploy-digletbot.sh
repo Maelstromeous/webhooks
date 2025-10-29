@@ -11,7 +11,7 @@ REMOTE_SCRIPT="/root/update.sh"    # Script already on remote machine
 log_message 'digletbot' 'Starting deployment...'
 
 # Ensure SSH client is available (works on Alpine, etc.)
-sh "$SCRIPT_DIR/install_ssh_client.sh"
+bash "$SCRIPT_DIR/install_ssh_client.sh"
 
 ssh -i "$SSH_KEY" \
     -o StrictHostKeyChecking=accept-new \
@@ -20,4 +20,4 @@ ssh -i "$SSH_KEY" \
     "${REMOTE_USER}@${REMOTE_HOST}" \
     "bash \"$REMOTE_SCRIPT\""
 
-log_message 'digletbot' 'digletbot finished!'
+log_message 'digletbot' 'Deployment finished!'

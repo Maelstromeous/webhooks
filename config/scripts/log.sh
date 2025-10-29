@@ -11,15 +11,8 @@ if [ ! -d "$LOG_DIR" ]; then
 		mkdir -p "$LOG_DIR"
 fi
 
-# If $1 is not provided, default to "???"
-if [ -z "${1:-}" ]; then
-		SOURCE="???"
-else
-		SOURCE="$1"
-fi
-
-# Function to log messages with timestamp
-function log_message() {
-		local MESSAGE="$2"
-		echo "$(date '+%Y-%m-%d %H:%M:%S') [$SOURCE] $MESSAGE" >> "$LOG_FILE"
+log_message() {
+    local SRC="$1"; shift
+    local MSG="$*"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [$SRC] $MSG" >> "$LOG_FILE"
 }
