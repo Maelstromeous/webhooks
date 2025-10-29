@@ -11,7 +11,7 @@
             "secret": "REPLACE_ME",
             "parameter": {
               "source": "header",
-              "name": "X-Hub-Signature256"
+              "name": "X-Hub-Signature-256"
             }
           }
         }
